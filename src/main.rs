@@ -8,7 +8,7 @@ mod cli;
 fn main() -> Result<(), ROCrateError> {
     let Cli { command, crate_dir } = Cli::parse();
 
-    let rocrate = match crate_dir {
+    let mut rocrate = match crate_dir {
         Some(dir) => read_rocrate(dir)?,
         None => read_rocrate("./")?,
     };
@@ -26,6 +26,7 @@ fn main() -> Result<(), ROCrateError> {
                         file.set_property(key.into(), value.into());
                     }
                 }
+                rocrate.add_data_entity(file);
             }
             cli::AddCommand::Dataset => {
                 let mut file = DataEntity::new_dataset(path);
@@ -34,6 +35,7 @@ fn main() -> Result<(), ROCrateError> {
                         file.set_property(key.into(), value.into());
                     }
                 }
+                rocrate.add_data_entity(file);
             }
             cli::AddCommand::TestDefinition {
                 suite,
@@ -68,5 +70,7 @@ fn main() -> Result<(), ROCrateError> {
         cli::Commands::WriteZip { destination } => todo!(),
     };
 
+    let pretty = serde_json::to_string_pretty(&rocrate)?;
+    println!("{pretty}");
     Ok(())
 }
