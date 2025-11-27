@@ -7,6 +7,8 @@ use std::error::Error;
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+    #[arg(short = 'c', long = "crate-path")]
+    pub crate_dir: Option<String>,
 }
 
 /// Simple program to greet a person
@@ -15,30 +17,28 @@ pub enum Commands {
     Add {
         #[command(subcommand)]
         command: AddCommand,
-    },
 
+        #[arg(short = 'P', value_name = "KEY=VALUE", value_parser = parse_key_val::<String, String>, action = ArgAction::Append)]
+        property: Vec<(String, String)>,
+
+        #[arg(short = 'p')]
+        path: String,
+    },
     Init {
+        #[arg(long = "gen-preview")]
         gen_preview: bool,
+        #[arg(short = 'e')]
         exclude: Option<String>,
-        create_dir: Option<String>,
     },
-    Write {
-        #[command(subcommand)]
-        command: WriteCommand,
+    WriteZip {
+        #[arg(long = "dst")]
+        destination: String,
     },
-}
-#[derive(Debug, Clone, Subcommand)]
-pub enum WriteCommand {
-    Dataset,
-    File,
-    TestDefinition,
-    TestInstance,
-    TestSuite,
-    Workflow,
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Clone, Subcommand, Default)]
 pub enum AddLanguage {
+    #[default]
     Cwl,
     Galaxy,
     Knime,
@@ -50,18 +50,45 @@ pub enum AddLanguage {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum AddCommand {
-    Dataset,
     File,
-    TestDefinition,
-    TestInstance,
-    TestSuite,
+    Dataset,
+    TestDefinition {
+        #[arg(long = "suite")]
+        suite: String,
+        #[arg(long = "definition-path")]
+        definition_path: String,
+        #[arg(short = 'e', long = "engine", default_value = "planemo")]
+        engine: Option<String>,
+        #[arg(short = 'v', long = "engine-version")]
+        engine_version: Option<String>,
+    },
+    TestInstance {
+        #[arg(long = "suite")]
+        suite: String,
+        #[arg(long = "url")]
+        url: String,
+        #[arg(short = 'r', long = "resource")]
+        resource: Option<String>,
+        #[arg(short = 's', long = "service", default_value = "jenkins")]
+        service: Option<String>,
+        #[arg(short = 'i', long = "identifier")]
+        identifier: Option<String>,
+        #[arg(short = 'n', long = "name")]
+        name: Option<String>,
+    },
+    TestSuite {
+        #[arg(short = 'i', long = "identifier")]
+        identifier: Option<String>,
+        #[arg(short = 'n', long = "name")]
+        name: Option<String>,
+        #[arg(short = 'm', long = "main-entity")]
+        main_entitiy: Option<String>,
+    },
     Workflow {
         #[command(subcommand)]
         language: AddLanguage,
         #[arg(short = 'c')]
-        create_dir: Option<String>,
-        #[arg(short = 'P', value_name = "KEY=VALUE", value_parser = parse_key_val::<String, String>, action = ArgAction::Append)]
-        property: Vec<(String, String)>,
+        crate_dir: Option<String>,
     },
 }
 
