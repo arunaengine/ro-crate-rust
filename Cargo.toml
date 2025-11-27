@@ -1,0 +1,23 @@
+[package]
+name = "ro-crate-rust"
+version = "0.1.0"
+authors = ["Jannis Schlegel <Jannis.Schlegel@uni-giessen.de>", "Sebastian Beyvers <sb@pus.de>"]
+edition = "2024"
+repository = "https://github.com/arunaengine/ro-crate-rust"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+regex = "1.12.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0.17"
+url = "2.5"
+zip = "6.0.0"
+lazy_static = "1.5.0"
+chrono = "0.4.42"
+
+[dev-dependencies]
+tempfile = "3.23"
+
+[features]
+default = []
