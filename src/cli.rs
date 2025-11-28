@@ -52,44 +52,6 @@ pub enum AddLanguage {
 pub enum AddCommand {
     File,
     Dataset,
-    TestDefinition {
-        #[arg(long = "suite")]
-        suite: String,
-        #[arg(long = "definition-path")]
-        definition_path: String,
-        #[arg(short = 'e', long = "engine", default_value = "planemo")]
-        engine: Option<String>,
-        #[arg(short = 'v', long = "engine-version")]
-        engine_version: Option<String>,
-    },
-    TestInstance {
-        #[arg(long = "suite")]
-        suite: String,
-        #[arg(long = "url")]
-        url: String,
-        #[arg(short = 'r', long = "resource")]
-        resource: Option<String>,
-        #[arg(short = 's', long = "service", default_value = "jenkins")]
-        service: Option<String>,
-        #[arg(short = 'i', long = "identifier")]
-        identifier: Option<String>,
-        #[arg(short = 'n', long = "name")]
-        name: Option<String>,
-    },
-    TestSuite {
-        #[arg(short = 'i', long = "identifier")]
-        identifier: Option<String>,
-        #[arg(short = 'n', long = "name")]
-        name: Option<String>,
-        #[arg(short = 'm', long = "main-entity")]
-        main_entitiy: Option<String>,
-    },
-    Workflow {
-        #[command(subcommand)]
-        language: AddLanguage,
-        #[arg(short = 'c')]
-        crate_dir: Option<String>,
-    },
 }
 
 /// Parse a single key-value pair
