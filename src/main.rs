@@ -20,7 +20,7 @@ fn main() -> Result<(), ROCrateError> {
 
     match command {
         cli::Commands::Init {
-            gen_preview: _,
+            gen_preview,
             exclude,
         } => {
             let mut builder = ROCrateBuilder::new();
@@ -46,11 +46,17 @@ fn main() -> Result<(), ROCrateError> {
                             .finish();
                     }
                     if metadata.is_file() {
+                        let name = entry.path().to_str().map(|p| p.to_string()).unwrap();
                         builder = builder
-                            .add_file(entry.path().to_str().map(|p| p.to_string()).unwrap())
+                            .add_file(name.clone())
+                            .with_encoding_format(name.rsplit_once('.').unwrap().1)
                             .finish();
                     }
                 }
+            }
+
+            if gen_preview {
+                dbg!("HTML previews are not implemented yet");
             }
 
             let rocrate = builder.build()?;
