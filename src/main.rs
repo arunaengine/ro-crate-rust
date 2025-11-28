@@ -26,7 +26,10 @@ fn main() -> Result<(), ROCrateError> {
             let mut builder = ROCrateBuilder::new();
 
             let path = match &crate_dir {
-                Some(dir) => Path::new(dir),
+                Some(dir) => {
+                    std::env::set_current_dir(Path::new(dir)).unwrap();
+                    Path::new("./")
+                }
                 None => Path::new("./"),
             };
 
@@ -34,7 +37,7 @@ fn main() -> Result<(), ROCrateError> {
                 Some(list) => list.split(";").collect(),
                 None => vec![],
             };
-            for entry in path.read_dir().expect("ead_dir call failed") {
+            for entry in path.read_dir().expect("read_dir call failed") {
                 if let Ok(entry) = entry {
                     if to_exclude.contains(&entry.path().to_str().unwrap()) {
                         continue;
@@ -61,7 +64,7 @@ fn main() -> Result<(), ROCrateError> {
             }
 
             if gen_preview {
-                dbg!("TML previews are not implemented yet");
+                dbg!("HTML previews are not implemented yet");
             }
 
             let rocrate = builder.build()?;
@@ -132,7 +135,7 @@ fn get_type(ending: &str) -> String {
         "ics" => "text/calendar",
         "jar" => "application/java-archive",
         "jpeg" | "jpg" => "image/jpeg",
-        "js" => "text/javascript (Specifications: HTML and RFC 9239)",
+        "js" => "text/javascript",
         "json" => "application/json",
         "jsonld" => "application/ld+json",
         "md" => "text/markdown",
@@ -175,11 +178,11 @@ fn get_type(ending: &str) -> String {
         "xhtml" => "application/xhtml+xml",
         "xls" => "application/vnd.ms-excel",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "xml" => "application/xml serves as a valid default.",
+        "xml" => "application/xml",
         "xul" => "application/vnd.mozilla.xul+xml",
         "zip" => "application/x-zip-compressed.",
-        "3gp" => "audio/3gpp if it doesn't contain video",
-        "3g2" => "audio/3gpp2 if it doesn't contain video",
+        "3gp" => "audio/3gpp",
+        "3g2" => "audio/3gpp2",
         "7z" => "application/x-7z-compressed",
         _ => "ext/plain", // or application/octet-stream?
     }
