@@ -34,7 +34,7 @@ fn main() -> Result<(), ROCrateError> {
                 Some(list) => list.split(";").collect(),
                 None => vec![],
             };
-            for entry in path.read_dir().expect("read_dir call failed") {
+            for entry in path.read_dir().expect("ead_dir call failed") {
                 if let Ok(entry) = entry {
                     if to_exclude.contains(&entry.path().to_str().unwrap()) {
                         continue;
@@ -47,16 +47,21 @@ fn main() -> Result<(), ROCrateError> {
                     }
                     if metadata.is_file() {
                         let name = entry.path().to_str().map(|p| p.to_string()).unwrap();
+                        let split = name.rsplit_once('.').unwrap().1;
+                        let encoding = get_type(split);
+
+                        println!("{} {}", split, encoding);
+
                         builder = builder
                             .add_file(name.clone())
-                            .with_encoding_format(name.rsplit_once('.').unwrap().1)
+                            .with_encoding_format(encoding)
                             .finish();
                     }
                 }
             }
 
             if gen_preview {
-                dbg!("HTML previews are not implemented yet");
+                dbg!("TML previews are not implemented yet");
             }
 
             let rocrate = builder.build()?;
@@ -97,4 +102,86 @@ fn main() -> Result<(), ROCrateError> {
     };
 
     Ok(())
+}
+
+fn get_type(ending: &str) -> String {
+    match ending {
+        "aac" => "audio/aac",
+        "abw" => "application/x-abiword",
+        "apng" => "image/apng",
+        "arc" => "application/x-freearc",
+        "avif" => "image/avif",
+        "avi" => "video/x-msvideo",
+        "azw" => "application/vnd.amazon.ebook",
+        "bin" => "application/octet-stream",
+        "bmp" => "image/bmp",
+        "bz" => "application/x-bzip",
+        "bz2" => "application/x-bzip2",
+        "cda" => "application/x-cdf",
+        "csh" => "application/x-csh",
+        "css" => "text/css",
+        "csv" => "text/csv",
+        "doc" => "application/msword",
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "eot" => "application/vnd.ms-fontobject",
+        "epub" => "application/epub+zip",
+        "gz" => "application/x-gzip.",
+        "gif" => "image/gif",
+        "htm" | "html" => "text/html",
+        "ico" => "image/vnd.microsoft.icon",
+        "ics" => "text/calendar",
+        "jar" => "application/java-archive",
+        "jpeg" | "jpg" => "image/jpeg",
+        "js" => "text/javascript (Specifications: HTML and RFC 9239)",
+        "json" => "application/json",
+        "jsonld" => "application/ld+json",
+        "md" => "text/markdown",
+        "mid" | "midi" => "audio/x-midi",
+        "mjs" => "text/javascript",
+        "mp3" => "audio/mpeg",
+        "mp4" => "video/mp4",
+        "mpeg" => "video/mpeg",
+        "mpkg" => "application/vnd.apple.installer+xml",
+        "odp" => "application/vnd.oasis.opendocument.presentation",
+        "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+        "odt" => "application/vnd.oasis.opendocument.text",
+        "oga" => "audio/ogg",
+        "ogv" => "video/ogg",
+        "ogx" => "application/ogg",
+        "opus" => "audio/ogg",
+        "otf" => "font/otf",
+        "png" => "image/png",
+        "pdf" => "application/pdf",
+        "php" => "application/x-httpd-php",
+        "ppt" => "application/vnd.ms-powerpoint",
+        "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "rar" => "application/vnd.rar",
+        "rtf" => "application/rtf",
+        "sh" => "application/x-sh",
+        "svg" => "image/svg+xml",
+        "tar" => "application/x-tar",
+        "tif" | "tiff" => "image/tiff",
+        "ts" => "video/mp2t",
+        "ttf" => "font/ttf",
+        "txt" => "text/plain",
+        "vsd" => "application/vnd.visio",
+        "wav" => "audio/wav",
+        "weba" => "audio/webm",
+        "webm" => "video/webm",
+        "webmanifest" => "application/manifest+json",
+        "webp" => "image/webp",
+        "woff" => "font/woff",
+        "woff2" => "font/woff2",
+        "xhtml" => "application/xhtml+xml",
+        "xls" => "application/vnd.ms-excel",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xml" => "application/xml serves as a valid default.",
+        "xul" => "application/vnd.mozilla.xul+xml",
+        "zip" => "application/x-zip-compressed.",
+        "3gp" => "audio/3gpp if it doesn't contain video",
+        "3g2" => "audio/3gpp2 if it doesn't contain video",
+        "7z" => "application/x-7z-compressed",
+        _ => "ext/plain", // or application/octet-stream?
+    }
+    .to_string()
 }
