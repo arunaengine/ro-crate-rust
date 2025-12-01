@@ -20,54 +20,34 @@ fn main() -> Result<(), ROCrateError> {
 
     match command {
         cli::Commands::Init {
-            gen_preview,
+            // gen_preview,
             exclude,
+            recursive,
+            force,
         } => {
-            let mut builder = ROCrateBuilder::new();
-
             let path = match &crate_dir {
                 Some(dir) => {
-                    std::env::set_current_dir(Path::new(dir)).unwrap();
+                    std::env::set_current_dir(Path::new(dir))?;
                     Path::new("./")
                 }
                 None => Path::new("./"),
             };
 
-            let to_exclude = match &exclude {
-                Some(list) => list.split(";").collect(),
-                None => vec![],
-            };
-            for entry in path.read_dir().expect("read_dir call failed") {
-                if let Ok(entry) = entry {
-                    if to_exclude.contains(&entry.path().to_str().unwrap()) {
-                        continue;
-                    }
-                    let metadata = entry.metadata()?;
-                    if metadata.is_dir() {
-                        builder = builder
-                            .add_dataset(entry.path().to_str().map(|p| p.to_string()).unwrap())
-                            .finish();
-                    }
-                    if metadata.is_file() {
-                        let name = entry.path().to_str().map(|p| p.to_string()).unwrap();
-                        let split = name.rsplit_once('.').unwrap().1;
-                        let encoding = get_type(split);
-
-                        println!("{} {}", split, encoding);
-
-                        builder = builder
-                            .add_file(name.clone())
-                            .with_encoding_format(encoding)
-                            .finish();
-                    }
+            if path
+                .read_dir()?
+                .map(|entry| -> Result<String, ROCrateError> {
+                    Ok(entry?.file_name().into_string()?)
+                })
+                .any(|name| name.map(|n| n == "ro-crate-metadata.json").unwrap_or(false))
+            {
+                if !force {
+                    panic!("Already contains ro-crate-metadata.json file");
                 }
             }
 
-            if gen_preview {
-                dbg!("HTML previews are not implemented yet");
-            }
+            let builder = ROCrateBuilder::new();
+            let rocrate = read_dir(builder, path, exclude, recursive)?.build()?;
 
-            let rocrate = builder.build()?;
             write_rocrate(&rocrate, path)?;
         }
         cli::Commands::WriteZip { destination } => {
@@ -105,6 +85,47 @@ fn main() -> Result<(), ROCrateError> {
     };
 
     Ok(())
+}
+
+fn read_dir(
+    mut builder: ROCrateBuilder,
+    dir: &Path,
+    exclude: Option<String>,
+    recursive: bool,
+) -> Result<ROCrateBuilder, ROCrateError> {
+    let to_exclude = match &exclude {
+        Some(list) => list.split(";").collect(),
+        None => vec![],
+    };
+    for entry in dir.read_dir()? {
+        if let Ok(entry) = entry {
+            if to_exclude.contains(&entry.file_name().into_string()?.as_str()) {
+                continue;
+            }
+            let metadata = entry.metadata()?;
+            if metadata.is_dir() {
+                if recursive {
+                    builder = read_dir(builder, &entry.path(), exclude.clone(), recursive)?;
+                } else {
+                    builder = builder
+                        .add_dataset(entry.path().into_os_string().into_string()?)
+                        .finish();
+                }
+            }
+            if metadata.is_file() {
+                let name = entry.path().into_os_string().into_string()?;
+                let split = name.rsplit_once('.').unwrap_or((&name, "")).1;
+                let encoding = get_type(split);
+
+                builder = builder
+                    .add_file(name.clone())
+                    .with_encoding_format(encoding)
+                    .finish();
+            }
+        }
+    }
+
+    Ok(builder)
 }
 
 fn get_type(ending: &str) -> String {

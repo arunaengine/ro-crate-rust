@@ -1,6 +1,7 @@
 //! Error types for the RO-Crate library.
 
 use serde::{Deserialize, Serialize};
+use std::ffi::OsString;
 use std::fmt;
 use thiserror::Error;
 
@@ -46,6 +47,16 @@ pub enum ROCrateError {
     /// Unsupported operation
     #[error("Unsupported operation: {0}")]
     Unsupported(String),
+
+    /// OS String conversion error
+    #[error("OsString conversion error: {0:?}")]
+    OsStringConversion(String),
+}
+
+impl From<OsString> for ROCrateError {
+    fn from(_value: OsString) -> Self {
+        ROCrateError::OsStringConversion("OsString contains invalid UTF-8 encoding".to_string())
+    }
 }
 
 /// Validation-specific error type with detailed context.

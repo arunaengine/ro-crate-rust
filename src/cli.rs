@@ -25,10 +25,15 @@ pub enum Commands {
         path: String,
     },
     Init {
-        #[arg(long = "gen-preview")]
-        gen_preview: bool,
+        // TODO:
+        // #[arg(long = "gen-preview")]
+        // gen_preview: bool,
         #[arg(short = 'e')]
         exclude: Option<String>,
+        #[arg(short = 'r')]
+        recursive: bool,
+        #[arg(short = 'f')]
+        force: bool,
     },
     WriteZip {
         #[arg(long = "dst")]
